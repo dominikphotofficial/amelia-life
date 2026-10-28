@@ -94,9 +94,8 @@ export const EndingScreen: React.FC<EndingScreenProps> = ({ language, stats, onR
   const currentEnding = endingsData[endingType];
 
   return (
-    <div className="relative w-full h-full flex flex-col items-center justify-center p-4 sm:p-8 bg-slate-950 font-sans select-none overflow-y-auto">
-      {/* Background Ambience */}
-      <div className="absolute inset-0 z-0">
+    <div className="relative w-full h-[100dvh] min-h-[100dvh] flex flex-col items-center justify-center p-3.5 sm:p-8 bg-slate-950 font-sans select-none overflow-y-auto pb-[max(1rem,env(safe-area-inset-bottom))]">
+      <div className="absolute inset-0 z-0 pointer-events-none">
         <img
           src={currentEnding.image}
           alt={currentEnding.title}
@@ -106,20 +105,20 @@ export const EndingScreen: React.FC<EndingScreenProps> = ({ language, stats, onR
         <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/80 to-slate-950" />
       </div>
 
-      <div className="relative z-10 max-w-2xl w-full bg-slate-900/90 backdrop-blur-xl border border-sky-500/40 rounded-3xl p-6 sm:p-8 shadow-2xl flex flex-col items-center text-center my-auto animate-in zoom-in-95 duration-300">
-        <div className="w-16 h-16 rounded-2xl bg-amber-500/20 border border-amber-400/40 flex items-center justify-center text-amber-300 mb-4 shadow-lg">
-          <Award className="w-8 h-8" />
+      <div className="relative z-10 max-w-xl w-full bg-slate-900/95 backdrop-blur-xl border border-sky-500/40 rounded-3xl p-4 sm:p-7 shadow-2xl flex flex-col items-center text-center my-auto animate-in zoom-in-95 duration-300">
+        <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-2xl bg-amber-500/20 border border-amber-400/40 flex items-center justify-center text-amber-300 mb-2.5 sm:mb-4 shadow-lg">
+          <Award className="w-6 h-6 sm:w-8 sm:h-8" />
         </div>
 
-        <span className="text-xs font-bold text-sky-400 tracking-widest uppercase mb-1">
+        <span className="text-[10px] sm:text-xs font-bold text-sky-400 tracking-widest uppercase mb-0.5">
           {currentEnding.title}
         </span>
-        <h2 className="text-2xl sm:text-3xl font-display font-extrabold text-white mb-4">
+        <h2 className="text-xl sm:text-2xl font-display font-extrabold text-white mb-3">
           {currentEnding.subtitle}
         </h2>
 
         {/* Ending Portrait Card */}
-        <div className="w-full h-56 sm:h-64 rounded-2xl overflow-hidden border border-slate-700 mb-5 relative shadow-xl">
+        <div className="w-full h-44 sm:h-60 rounded-2xl overflow-hidden border border-slate-700 mb-3.5 relative shadow-xl bg-slate-800">
           <img
             src={currentEnding.image}
             alt={currentEnding.charName}
@@ -129,27 +128,27 @@ export const EndingScreen: React.FC<EndingScreenProps> = ({ language, stats, onR
         </div>
 
         {/* Epilogue narrative */}
-        <p className="text-slate-200 text-xs sm:text-sm leading-relaxed mb-6 bg-slate-950/60 p-4 rounded-2xl border border-slate-800 text-left">
+        <p className="text-slate-200 text-xs sm:text-sm leading-relaxed mb-4 bg-slate-950/60 p-3 sm:p-4 rounded-2xl border border-slate-800 text-left">
           {currentEnding.epilogue}
         </p>
 
         {/* Final Romance Score Summary */}
-        <div className="w-full grid grid-cols-3 gap-2.5 mb-6 text-center">
-          <div className="p-2.5 rounded-xl bg-slate-800/80 border border-cyan-500/30">
-            <span className="text-[10px] text-cyan-300 font-semibold block">Dima</span>
-            <span className="text-base font-mono font-bold text-white tabular-nums">
+        <div className="w-full grid grid-cols-3 gap-2 mb-4 text-center">
+          <div className="p-2 rounded-xl bg-slate-800/80 border border-cyan-500/30">
+            <span className="text-[9px] sm:text-[10px] text-cyan-300 font-semibold block">Dima</span>
+            <span className="text-sm sm:text-base font-mono font-bold text-white tabular-nums">
               {stats.dimaAffection} {isLt ? 'tšk.' : 'pts'}
             </span>
           </div>
-          <div className="p-2.5 rounded-xl bg-slate-800/80 border border-amber-500/30">
-            <span className="text-[10px] text-amber-300 font-semibold block">{isLt ? 'Artiomas' : 'Artem'}</span>
-            <span className="text-base font-mono font-bold text-white tabular-nums">
+          <div className="p-2 rounded-xl bg-slate-800/80 border border-amber-500/30">
+            <span className="text-[9px] sm:text-[10px] text-amber-300 font-semibold block">{isLt ? 'Artiomas' : 'Artem'}</span>
+            <span className="text-sm sm:text-base font-mono font-bold text-white tabular-nums">
               {stats.artemAffection} {isLt ? 'tšk.' : 'pts'}
             </span>
           </div>
-          <div className="p-2.5 rounded-xl bg-slate-800/80 border border-violet-500/30">
-            <span className="text-[10px] text-violet-300 font-semibold block">Roma</span>
-            <span className="text-base font-mono font-bold text-white tabular-nums">
+          <div className="p-2 rounded-xl bg-slate-800/80 border border-violet-500/30">
+            <span className="text-[9px] sm:text-[10px] text-violet-300 font-semibold block">Roma</span>
+            <span className="text-sm sm:text-base font-mono font-bold text-white tabular-nums">
               {stats.romaAffection} {isLt ? 'tšk.' : 'pts'}
             </span>
           </div>
@@ -158,10 +157,10 @@ export const EndingScreen: React.FC<EndingScreenProps> = ({ language, stats, onR
         {/* Restart Action */}
         <button
           onClick={onRestart}
-          className="w-full py-4 px-6 rounded-2xl bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-400 hover:to-blue-500 text-white font-display font-extrabold text-sm tracking-wide shadow-xl shadow-sky-600/30 hover:scale-[1.01] active:scale-[0.99] transition-all flex items-center justify-center gap-2"
+          className="w-full py-3 sm:py-3.5 px-5 rounded-2xl bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-400 hover:to-blue-500 active:scale-95 text-white font-display font-extrabold text-xs sm:text-sm tracking-wide shadow-xl shadow-sky-600/30 transition-all flex items-center justify-center gap-2 min-h-[44px]"
         >
           <RotateCcw className="w-4 h-4" />
-          <span>{isLt ? 'ŽAISTI IŠ NAUJO IR IŠBANDYTI KITAS PABAIGAS' : 'PLAY AGAIN & EXPLORE OTHER ROUTES'}</span>
+          <span>{isLt ? 'ŽAISTI IŠ NAUJO' : 'PLAY AGAIN'}</span>
         </button>
       </div>
     </div>

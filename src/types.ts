@@ -108,6 +108,20 @@ export interface ChatThread {
   messages: ChatMessage[];
 }
 
+export interface Achievement {
+  id: string;
+  title: string;
+  titleLt: string;
+  description: string;
+  descriptionLt: string;
+  icon: string;
+  category: 'swimming' | 'romance' | 'squad' | 'story';
+  unlocked: boolean;
+  unlockedAt?: string;
+  progress?: number;
+  maxProgress?: number;
+}
+
 export interface PlayerStats {
   dimaAffection: number;
   artemAffection: number;
@@ -116,6 +130,9 @@ export interface PlayerStats {
   swimmingSkill: number;
   bestLapTime: number; // in seconds
   championshipWon: boolean;
+  unlockedAchievements: string[];
+  perfectStrokesCount: number;
+  deepTalksCount: number;
 }
 
 export interface GameSaveState {

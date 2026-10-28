@@ -47,7 +47,7 @@ class SoundEngine {
     return this.isMuted;
   }
 
-  public playSfx(type: 'click' | 'text' | 'heart' | 'splash' | 'whistle' | 'ding' | 'cheer' | 'breath') {
+  public playSfx(type: 'click' | 'text' | 'heart' | 'splash' | 'whistle' | 'ding' | 'cheer' | 'breath' | 'achievement') {
     if (this.isMuted) return;
     this.initContext();
     if (!this.ctx || !this.sfxGain) return;
@@ -205,6 +205,24 @@ class SoundEngine {
             osc.start(t + step * 0.12);
             osc.stop(t + step * 0.12 + 0.4);
           });
+        });
+        break;
+      }
+
+      case 'achievement': {
+        // Sparkling bell fanfare for milestone achievement unlock
+        const notes = [587.33, 739.99, 880.00, 1174.66, 1479.98]; // D5, F#5, A5, D6, F#6
+        notes.forEach((freq, idx) => {
+          const osc = this.ctx!.createOscillator();
+          const gain = this.ctx!.createGain();
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(freq, t + idx * 0.08);
+          gain.gain.setValueAtTime(0.2, t + idx * 0.08);
+          gain.gain.exponentialRampToValueAtTime(0.001, t + idx * 0.08 + 0.55);
+          osc.connect(gain);
+          gain.connect(this.sfxGain!);
+          osc.start(t + idx * 0.08);
+          osc.stop(t + idx * 0.08 + 0.55);
         });
         break;
       }

@@ -13,7 +13,9 @@ import {
   MapPin,
   Calendar,
   Waves,
+  Trophy,
 } from 'lucide-react';
+import { ProfileAchievementsModal } from './ProfileAchievementsModal.tsx';
 
 interface VisualNovelDialogProps {
   language: Language;
@@ -45,6 +47,7 @@ export const VisualNovelDialog: React.FC<VisualNovelDialogProps> = ({
   const [displayedText, setDisplayedText] = useState('');
   const [isTyping, setIsTyping] = useState(true);
   const [showHistory, setShowHistory] = useState(false);
+  const [showProfile, setShowProfile] = useState(false);
   const [historyLog, setHistoryLog] = useState<{ speaker: string; text: string }[]>([]);
   const [muted, setMuted] = useState(sound.getMuted());
   const [choiceReaction, setChoiceReaction] = useState<string | null>(null);
@@ -57,7 +60,6 @@ export const VisualNovelDialog: React.FC<VisualNovelDialogProps> = ({
   const currentLocation = isLt && currentNode.locationNameLt ? currentNode.locationNameLt : currentNode.locationName;
   const currentSpeakerRole = isLt && speaker.roleLt ? speaker.roleLt : speaker.role;
 
-  // Typewriter effect
   useEffect(() => {
     let index = 0;
     setDisplayedText('');
@@ -107,7 +109,7 @@ export const VisualNovelDialog: React.FC<VisualNovelDialogProps> = ({
       setChoiceReaction(reaction);
       setTimeout(() => {
         onSelectChoice(c);
-      }, 1000);
+      }, 900);
     } else {
       onSelectChoice(c);
     }
@@ -122,171 +124,133 @@ export const VisualNovelDialog: React.FC<VisualNovelDialogProps> = ({
   };
 
   const periodTranslations: Record<string, string> = {
-    MORNING_SCHOOL: 'Rytas · Gimnazija',
-    AFTERNOON_POOL: 'Popietė · Baseinas',
-    EVENING_ROOM: 'Vakaras · Namai',
+    MORNING_SCHOOL: 'Rytas',
+    AFTERNOON_POOL: 'Baseinas',
+    EVENING_ROOM: 'Vakaras',
   };
 
   return (
-    <div className="relative w-full h-full flex flex-col justify-between overflow-hidden select-none bg-slate-950 font-sans">
+    <div className="relative w-full h-[100dvh] min-h-[100dvh] flex flex-col justify-between overflow-hidden select-none bg-slate-950 font-sans pb-[env(safe-area-inset-bottom)]">
       {/* Dynamic Background Image */}
-      <div className="absolute inset-0 z-0">
+      <div className="absolute inset-0 z-0 pointer-events-none">
         <img
           src={currentNode.bgImage || CHARACTERS.amelia.avatar}
           alt="Scene Background"
           referrerPolicy="no-referrer"
-          className="w-full h-full object-cover brightness-[0.72] filter blur-[0.5px] scale-105 transition-transform duration-1000"
+          className="w-full h-full object-cover object-top sm:object-center brightness-[0.65] filter blur-[0.5px] scale-105 transition-transform duration-1000"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/40 to-slate-950/70" />
       </div>
 
-      {/* Top HUD: Status Bar, Location, Stats & Controls */}
-      <header className="relative z-20 flex items-center justify-between p-3 sm:p-5 max-w-7xl mx-auto w-full">
-        {/* Left: Location & Day */}
-        <div className="flex items-center gap-2 sm:gap-3">
-          <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-900/80 backdrop-blur-md border border-slate-700/80 shadow-md text-xs font-semibold text-slate-200">
-            <Calendar className="w-3.5 h-3.5 text-sky-400" />
-            <span>{isLt ? dayTranslations[currentNode.day] || currentNode.day : currentNode.day}</span>
+      {/* Top HUD: Compact & Touch-Friendly for Mobile */}
+      <header className="relative z-20 flex items-center justify-between p-2.5 sm:p-4 max-w-7xl mx-auto w-full gap-2 shrink-0">
+        {/* Left: Location & Day badge */}
+        <div className="flex items-center gap-1.5 min-w-0">
+          <div className="flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-slate-900/85 backdrop-blur-md border border-slate-700/80 shadow-md text-[11px] sm:text-xs font-semibold text-slate-200 shrink-0">
+            <Calendar className="w-3 h-3 text-sky-400" />
+            <span>{isLt ? dayTranslations[currentNode.day]?.slice(0, 4) : currentNode.day.slice(0, 3)}</span>
             <span className="text-slate-500">·</span>
             <span className="text-sky-300">
-              {isLt
-                ? periodTranslations[currentNode.period] || currentNode.period
-                : currentNode.period.replace('_', ' ').toLowerCase()}
+              {isLt ? periodTranslations[currentNode.period] : currentNode.period.split('_')[0]}
             </span>
           </div>
 
-          <div className="hidden md:flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-900/80 backdrop-blur-md border border-slate-700/80 shadow-md text-xs font-medium text-slate-300">
-            <MapPin className="w-3.5 h-3.5 text-rose-400" />
-            <span className="truncate max-w-[260px]">{currentLocation}</span>
+          <div className="hidden sm:flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-slate-900/85 backdrop-blur-md border border-slate-700/80 shadow-md text-xs font-medium text-slate-300 truncate">
+            <MapPin className="w-3 h-3 text-rose-400 shrink-0" />
+            <span className="truncate max-w-[200px]">{currentLocation}</span>
           </div>
         </div>
 
-        {/* Center: Romance Affection Meters */}
-        <div className="hidden lg:flex items-center gap-3 bg-slate-900/80 backdrop-blur-md px-4 py-1.5 rounded-2xl border border-slate-700/80 shadow-md">
-          {/* Dima */}
-          <div className="flex items-center gap-1.5 text-xs">
-            <span className="text-cyan-400 font-semibold">Dima:</span>
-            <div className="w-14 h-2 bg-slate-800 rounded-full overflow-hidden">
-              <div
-                className="h-full bg-cyan-400 transition-all duration-500"
-                style={{ width: `${Math.min(100, stats.dimaAffection * 10)}%` }}
-              />
-            </div>
-            <span className="font-mono text-[10px] text-cyan-300 tabular-nums">
-              {stats.dimaAffection}
+        {/* Center: Mobile compact affection meters (Clickable to open profile) */}
+        <button
+          onClick={() => {
+            sound.playSfx('click');
+            setShowProfile(true);
+          }}
+          className="flex items-center gap-1.5 sm:gap-3 bg-slate-900/85 hover:bg-slate-850 active:scale-95 backdrop-blur-md px-2.5 sm:px-3.5 py-1.5 rounded-xl border border-slate-700/80 shadow-md text-[10px] sm:text-xs shrink-0 transition"
+          title={isLt ? 'Atidaryti Amelijos profilį' : 'Open Amelia Profile'}
+        >
+          <span className="text-cyan-400 font-bold">D:{stats.dimaAffection}</span>
+          <span className="text-slate-600">·</span>
+          <span className="text-amber-400 font-bold">A:{stats.artemAffection}</span>
+          <span className="text-slate-600">·</span>
+          <span className="text-violet-400 font-bold">R:{stats.romaAffection}</span>
+        </button>
+
+        {/* Right Action Island: Profile, Phone, Sound, Log, Language */}
+        <div className="flex items-center gap-1.5 shrink-0">
+          <button
+            onClick={() => {
+              sound.playSfx('click');
+              setShowProfile(true);
+            }}
+            className="flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/40 shadow-md text-xs font-bold transition active:scale-95"
+            title={isLt ? 'Profilis ir Pasiekimai' : 'Profile & Achievements'}
+          >
+            <Trophy className="w-3.5 h-3.5 text-amber-400" />
+            <span className="text-[11px] font-bold text-amber-300">
+              {stats.unlockedAchievements?.length || 0}
             </span>
-          </div>
+          </button>
 
-          <span className="text-slate-600">|</span>
+          <button
+            onClick={onOpenPhone}
+            className="flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-sky-600/90 active:scale-95 text-white shadow-md text-xs font-bold transition-all animate-pulse"
+            title="Telefonas / Phone"
+          >
+            <Smartphone className="w-3.5 h-3.5" />
+            <span className="w-1.5 h-1.5 rounded-full bg-rose-400" />
+          </button>
 
-          {/* Artem */}
-          <div className="flex items-center gap-1.5 text-xs">
-            <span className="text-amber-400 font-semibold">{isLt ? 'Artiomas' : 'Artem'}:</span>
-            <div className="w-14 h-2 bg-slate-800 rounded-full overflow-hidden">
-              <div
-                className="h-full bg-amber-400 transition-all duration-500"
-                style={{ width: `${Math.min(100, stats.artemAffection * 10)}%` }}
-              />
-            </div>
-            <span className="font-mono text-[10px] text-amber-300 tabular-nums">
-              {stats.artemAffection}
-            </span>
-          </div>
-
-          <span className="text-slate-600">|</span>
-
-          {/* Roma */}
-          <div className="flex items-center gap-1.5 text-xs">
-            <span className="text-violet-400 font-semibold">Roma:</span>
-            <div className="w-14 h-2 bg-slate-800 rounded-full overflow-hidden">
-              <div
-                className="h-full bg-violet-400 transition-all duration-500"
-                style={{ width: `${Math.min(100, stats.romaAffection * 10)}%` }}
-              />
-            </div>
-            <span className="font-mono text-[10px] text-violet-300 tabular-nums">
-              {stats.romaAffection}
-            </span>
-          </div>
-        </div>
-
-        {/* Right Action Island: Language, Phone, Pool, Log, Save, Sound */}
-        <div className="flex items-center gap-2">
-          {/* Language Switch */}
           <button
             onClick={() => {
               sound.playSfx('click');
               onToggleLanguage();
             }}
-            className="flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-slate-800/90 hover:bg-slate-700 text-sky-300 border border-slate-700 text-xs font-semibold transition-all"
-            title="Pakeisti kalbą / Change Language"
+            className="px-2 py-1.5 rounded-xl bg-slate-900/80 text-sky-300 border border-slate-700 text-xs font-bold"
+            title="Kalba / Language"
           >
             <Globe className="w-3.5 h-3.5" />
-            <span>{isLt ? 'LT' : 'EN'}</span>
           </button>
 
-          {/* Open Phone Button */}
-          <button
-            onClick={onOpenPhone}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-sky-600/90 hover:bg-sky-500 text-white shadow-md text-xs font-bold transition-all animate-pulse"
-            title={isLt ? 'Atidaryti Amelijos telefoną' : 'Open Amelia’s Smartphone'}
-          >
-            <Smartphone className="w-3.5 h-3.5" />
-            <span className="hidden sm:inline">{isLt ? 'Telefonas' : 'Phone'}</span>
-            <span className="w-2 h-2 rounded-full bg-rose-400" />
-          </button>
-
-          {/* Swim minigame jump */}
-          <button
-            onClick={onOpenArcade}
-            className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-800/90 hover:bg-slate-700 text-cyan-300 border border-cyan-500/30 text-xs font-semibold transition-all"
-            title={isLt ? 'Baseino treniruotė' : 'Launch Swimming Practice'}
-          >
-            <Waves className="w-3.5 h-3.5" />
-            <span>{isLt ? 'Baseinas' : 'Pool'}</span>
-          </button>
-
-          {/* Log History */}
           <button
             onClick={() => setShowHistory(true)}
-            className="p-2 rounded-xl bg-slate-900/80 hover:bg-slate-800 text-slate-300 border border-slate-700 transition-colors"
-            title={isLt ? 'Dialogų archyvas' : 'Dialogue Log'}
+            className="p-1.5 rounded-xl bg-slate-900/80 text-slate-300 border border-slate-700"
+            title="Archyvas / Log"
           >
-            <BookOpen className="w-4 h-4" />
+            <BookOpen className="w-3.5 h-3.5" />
           </button>
 
-          {/* Quick Save */}
           <button
             onClick={onSaveGame}
-            className="p-2 rounded-xl bg-slate-900/80 hover:bg-slate-800 text-slate-300 border border-slate-700 transition-colors"
-            title={isLt ? 'Greitas išsaugojimas' : 'Quick Save'}
+            className="p-1.5 rounded-xl bg-slate-900/80 text-slate-300 border border-slate-700"
+            title="Išsaugoti / Save"
           >
-            <Bookmark className="w-4 h-4" />
+            <Bookmark className="w-3.5 h-3.5" />
           </button>
 
-          {/* Audio toggle */}
           <button
             onClick={() => {
               const isNowMuted = sound.toggleMute();
               setMuted(isNowMuted);
             }}
-            className="p-2 rounded-xl bg-slate-900/80 hover:bg-slate-800 text-slate-300 border border-slate-700 transition-colors"
-            title="Garsas / Sound"
+            className="p-1.5 rounded-xl bg-slate-900/80 text-slate-300 border border-slate-700"
+            title="Garsas"
           >
-            {muted ? <VolumeX className="w-4 h-4" /> : <Volume2 className="w-4 h-4" />}
+            {muted ? <VolumeX className="w-3.5 h-3.5" /> : <Volume2 className="w-3.5 h-3.5" />}
           </button>
         </div>
       </header>
 
-      {/* Center Field: Character Sprite Display */}
-      <div className="relative z-10 flex-1 flex items-end justify-center pointer-events-none pb-2 sm:pb-4">
+      {/* Center Field: Character Sprite Display (Optimized for Mobile Height) */}
+      <div className="relative z-10 flex-1 flex items-end justify-center pointer-events-none pb-1 sm:pb-3 overflow-hidden">
         {currentNode.activeCharacterImage && (
-          <div className="relative max-w-sm sm:max-w-md w-full h-[380px] sm:h-[480px] flex items-end justify-center animate-in fade-in slide-in-from-bottom-8 duration-300">
+          <div className="relative max-w-[280px] sm:max-w-md w-full h-[32vh] sm:h-[45vh] flex items-end justify-center animate-in fade-in slide-in-from-bottom-6 duration-300">
             <img
               src={currentNode.activeCharacterImage}
               alt={speaker.name}
               referrerPolicy="no-referrer"
-              className="max-h-full w-auto object-contain drop-shadow-[0_20px_35px_rgba(0,0,0,0.8)] filter contrast-105"
+              className="max-h-full w-auto object-contain object-bottom drop-shadow-[0_15px_30px_rgba(0,0,0,0.85)] filter contrast-105"
             />
           </div>
         )}
@@ -294,28 +258,28 @@ export const VisualNovelDialog: React.FC<VisualNovelDialogProps> = ({
 
       {/* Choice Reaction Toast */}
       {choiceReaction && (
-        <div className="relative z-30 self-center mb-2 px-4 py-2 bg-slate-900/90 border border-pink-500/40 rounded-2xl text-pink-300 text-xs sm:text-sm font-semibold shadow-xl flex items-center gap-2 animate-bounce">
-          <Heart className="w-4 h-4 fill-pink-400 text-pink-400" />
-          <span>{choiceReaction}</span>
+        <div className="relative z-30 self-center mb-1.5 px-3.5 py-1.5 bg-slate-900/95 border border-pink-500/50 rounded-2xl text-pink-300 text-xs font-semibold shadow-xl flex items-center gap-1.5 animate-bounce">
+          <Heart className="w-3.5 h-3.5 fill-pink-400 text-pink-400" />
+          <span className="truncate max-w-[280px]">{choiceReaction}</span>
         </div>
       )}
 
-      {/* Dialogue Box & Interactive Choices */}
-      <div className="relative z-20 w-full max-w-4xl mx-auto px-4 pb-6 pt-2">
-        {/* Branching Dialogue Choices (if any) */}
+      {/* Bottom Area: Dialogue Box & Choices */}
+      <div className="relative z-20 w-full max-w-4xl mx-auto px-3 sm:px-6 pb-3 sm:pb-5 pt-1">
+        {/* Branching Dialogue Choices */}
         {currentNode.choices && currentNode.choices.length > 0 && !isTyping && (
-          <div className="mb-3 space-y-2 animate-in fade-in slide-in-from-bottom-4 duration-200">
+          <div className="mb-2 space-y-1.5 animate-in fade-in slide-in-from-bottom-3 duration-200">
             {currentNode.choices.map((choice) => (
               <button
                 key={choice.id}
                 onClick={() => handleChoice(choice)}
-                className="w-full text-left p-3.5 sm:p-4 rounded-2xl bg-slate-900/95 hover:bg-sky-950/80 active:bg-sky-900 border border-sky-500/40 hover:border-sky-400 text-white text-xs sm:text-sm font-medium transition-all shadow-xl hover:shadow-sky-500/20 flex items-center justify-between group"
+                className="w-full text-left p-3 sm:p-4 rounded-xl sm:rounded-2xl bg-slate-900/95 hover:bg-sky-950/90 active:bg-sky-900 border border-sky-500/40 text-white text-xs sm:text-sm font-medium transition-all shadow-lg flex items-center justify-between group min-h-[44px]"
               >
-                <span className="flex-1 pr-3 leading-relaxed">
+                <span className="flex-1 pr-2.5 leading-snug">
                   {isLt && choice.textLt ? choice.textLt : choice.text}
                 </span>
-                <span className="px-2.5 py-1 rounded-xl bg-sky-500/20 text-sky-300 text-[11px] font-bold tracking-wider shrink-0 group-hover:bg-sky-500 group-hover:text-white transition-colors">
-                  {isLt ? 'PASIRINKTI' : 'CHOOSE'}
+                <span className="px-2 py-0.5 rounded-lg bg-sky-500/20 text-sky-300 text-[10px] font-bold tracking-wider shrink-0">
+                  {isLt ? 'RINKTIS' : 'CHOOSE'}
                 </span>
               </button>
             ))}
@@ -325,36 +289,36 @@ export const VisualNovelDialog: React.FC<VisualNovelDialogProps> = ({
         {/* Visual Novel Text Box */}
         <div
           onClick={handleBoxClick}
-          className="relative bg-slate-900/90 backdrop-blur-xl border border-slate-700/80 rounded-3xl p-5 sm:p-7 shadow-2xl cursor-pointer hover:border-sky-500/40 transition-colors"
+          className="relative bg-slate-900/95 backdrop-blur-xl border border-slate-700/80 rounded-2xl sm:rounded-3xl p-4 sm:p-6 shadow-2xl cursor-pointer hover:border-sky-500/40 transition-colors"
         >
           {/* Speaker Badge */}
-          <div className="flex items-center justify-between mb-2.5">
+          <div className="flex items-center justify-between mb-2">
             <div className="flex items-center gap-2">
               <span
-                className={`px-3 py-1 rounded-xl text-xs sm:text-sm font-display font-extrabold text-white bg-gradient-to-r ${speaker.themeColor} shadow-md`}
+                className={`px-2.5 py-0.5 rounded-lg text-xs font-display font-extrabold text-white bg-gradient-to-r ${speaker.themeColor} shadow-md`}
               >
                 {speaker.name}
               </span>
-              <span className="text-[11px] text-slate-400 font-medium">
+              <span className="text-[10px] text-slate-400 font-medium truncate max-w-[180px]">
                 {currentSpeakerRole}
               </span>
             </div>
 
             <span className="text-[10px] text-slate-500 font-mono hidden sm:inline">
-              {isLt ? '[Spauskite arba Space toliau]' : '[Click or Space to continue]'}
+              {isLt ? '[Spauskite toliau]' : '[Click to advance]'}
             </span>
           </div>
 
           {/* Dialogue Body Text */}
-          <p className="text-slate-100 text-sm sm:text-base leading-relaxed min-h-[56px] select-none font-normal">
+          <p className="text-slate-100 text-xs sm:text-sm md:text-base leading-relaxed min-h-[48px] select-none font-normal">
             {displayedText}
-            {isTyping && <span className="inline-block w-1.5 h-4 bg-sky-400 ml-1 animate-pulse" />}
+            {isTyping && <span className="inline-block w-1.5 h-3.5 bg-sky-400 ml-1 animate-pulse" />}
           </p>
 
           {/* Next Indicator */}
           {!isTyping && (!currentNode.choices || currentNode.choices.length === 0) && (
-            <div className="absolute right-5 bottom-4 text-sky-400 animate-bounce">
-              <span className="text-xs font-bold tracking-widest uppercase">
+            <div className="absolute right-4 bottom-3 text-sky-400 animate-bounce">
+              <span className="text-[10px] font-bold tracking-widest uppercase">
                 {isLt ? '▶ TOLIAU' : '▶ NEXT'}
               </span>
             </div>
@@ -364,10 +328,10 @@ export const VisualNovelDialog: React.FC<VisualNovelDialogProps> = ({
 
       {/* Backlog / Dialogue History Modal */}
       {showHistory && (
-        <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4">
-          <div className="w-full max-w-2xl bg-slate-900 border border-slate-700 rounded-3xl p-6 shadow-2xl flex flex-col max-h-[80vh]">
-            <div className="flex items-center justify-between pb-4 border-b border-slate-800">
-              <h3 className="text-base font-bold text-white flex items-center gap-2">
+        <div className="fixed inset-0 z-50 bg-slate-950/85 backdrop-blur-md flex items-center justify-center p-3 sm:p-4">
+          <div className="w-full max-w-2xl bg-slate-900 border border-slate-700 rounded-3xl p-4 sm:p-6 shadow-2xl flex flex-col max-h-[85vh]">
+            <div className="flex items-center justify-between pb-3 border-b border-slate-800">
+              <h3 className="text-sm sm:text-base font-bold text-white flex items-center gap-2">
                 <BookOpen className="w-4 h-4 text-sky-400" />
                 {isLt ? 'Dialogų archyvas' : 'Dialogue Backlog'}
               </h3>
@@ -379,11 +343,11 @@ export const VisualNovelDialog: React.FC<VisualNovelDialogProps> = ({
               </button>
             </div>
 
-            <div className="flex-1 overflow-y-auto py-4 space-y-4">
+            <div className="flex-1 overflow-y-auto py-3 space-y-3">
               {historyLog.map((log, i) => (
                 <div key={i} className="space-y-1">
                   <span className="text-xs font-bold text-sky-400">{log.speaker}</span>
-                  <p className="text-xs text-slate-300 leading-relaxed bg-slate-800/40 p-3 rounded-2xl border border-slate-700/40">
+                  <p className="text-xs text-slate-300 leading-relaxed bg-slate-800/40 p-2.5 rounded-xl border border-slate-700/40">
                     {log.text}
                   </p>
                 </div>
@@ -392,6 +356,14 @@ export const VisualNovelDialog: React.FC<VisualNovelDialogProps> = ({
           </div>
         </div>
       )}
+
+      {/* Amelia Profile & Achievements Modal */}
+      <ProfileAchievementsModal
+        isOpen={showProfile}
+        onClose={() => setShowProfile(false)}
+        stats={stats}
+        language={language}
+      />
     </div>
   );
 };

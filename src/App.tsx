@@ -17,6 +17,9 @@ import { SwimmingMinigame } from './components/SwimmingMinigame';
 import { PhoneModal } from './components/PhoneModal';
 import { RosterScreen } from './components/RosterScreen';
 import { EndingScreen } from './components/EndingScreen';
+import { AchievementToast } from './components/AchievementToast.tsx';
+import { ACHIEVEMENTS, evaluateAchievements } from './data/achievements.ts';
+import { Achievement } from './types.ts';
 
 const SAVE_KEY = 'amelia_romance_game_save_v1';
 const LANG_KEY = 'amelia_romance_game_lang_v1';
@@ -38,7 +41,13 @@ export default function App() {
     swimmingSkill: 50,
     bestLapTime: 27.5,
     championshipWon: false,
+    unlockedAchievements: [],
+    perfectStrokesCount: 0,
+    deepTalksCount: 0,
   });
+
+  const [activeAchievementToast, setActiveAchievementToast] = useState<Achievement | null>(null);
+  const [achievementQueue, setAchievementQueue] = useState<string[]>([]);
 
   const [activeMinigameDifficulty, setActiveMinigameDifficulty] = useState<
     'practice' | 'time_trial' | 'championship'
@@ -60,6 +69,35 @@ export default function App() {
       // ignore
     }
   }, []);
+
+  // Queue listener for sequential achievement notifications
+  useEffect(() => {
+    if (!activeAchievementToast && achievementQueue.length > 0) {
+      const nextId = achievementQueue[0];
+      const ach = ACHIEVEMENTS.find((a) => a.id === nextId);
+      if (ach) {
+        setActiveAchievementToast(ach);
+        sound.playSfx('achievement');
+      }
+      setAchievementQueue((prev) => prev.slice(1));
+    }
+  }, [activeAchievementToast, achievementQueue]);
+
+  const checkMilestones = (newStats: PlayerStats, completedLap?: boolean) => {
+    const newlyUnlocked = evaluateAchievements(newStats, currentNodeId, completedLap);
+    if (newlyUnlocked.length > 0) {
+      const updatedUnlocked = Array.from(
+        new Set([...(newStats.unlockedAchievements || []), ...newlyUnlocked])
+      );
+      setStats({
+        ...newStats,
+        unlockedAchievements: updatedUnlocked,
+      });
+      setAchievementQueue((prev) => [...prev, ...newlyUnlocked]);
+    } else {
+      setStats(newStats);
+    }
+  };
 
   const toggleLanguage = () => {
     setLanguage((prev) => {
@@ -110,7 +148,18 @@ export default function App() {
         setCurrentNodeId(parsed.currentNodeId);
       }
       if (parsed.stats) {
-        setStats(parsed.stats);
+        setStats({
+          dimaAffection: parsed.stats.dimaAffection ?? 2,
+          artemAffection: parsed.stats.artemAffection ?? 2,
+          romaAffection: parsed.stats.romaAffection ?? 2,
+          squadAffection: parsed.stats.squadAffection ?? 3,
+          swimmingSkill: parsed.stats.swimmingSkill ?? 50,
+          bestLapTime: parsed.stats.bestLapTime ?? 27.5,
+          championshipWon: parsed.stats.championshipWon ?? false,
+          unlockedAchievements: parsed.stats.unlockedAchievements ?? [],
+          perfectStrokesCount: parsed.stats.perfectStrokesCount ?? 0,
+          deepTalksCount: parsed.stats.deepTalksCount ?? 0,
+        });
       }
       setScreenMode('STORY');
       sound.playSfx('ding');
@@ -131,6 +180,9 @@ export default function App() {
       swimmingSkill: 50,
       bestLapTime: 27.5,
       championshipWon: false,
+      unlockedAchievements: [],
+      perfectStrokesCount: 0,
+      deepTalksCount: 0,
     });
     setScreenMode('STORY');
     sound.playBGM('school');
@@ -169,15 +221,23 @@ export default function App() {
   };
 
   const handleSelectChoice = (choice: DialogueChoice) => {
-    setStats((prev) => ({
-      ...prev,
-      dimaAffection: prev.dimaAffection + (choice.dimaDelta || 0),
-      artemAffection: prev.artemAffection + (choice.artemDelta || 0),
-      romaAffection: prev.romaAffection + (choice.romaDelta || 0),
-      squadAffection: prev.squadAffection + (choice.squadDelta || 0),
-      swimmingSkill: prev.swimmingSkill + (choice.staminaDelta || 0),
-    }));
+    const isDeep =
+      (choice.dimaDelta || 0) >= 2 ||
+      (choice.artemDelta || 0) >= 2 ||
+      (choice.romaDelta || 0) >= 2 ||
+      (choice.squadDelta || 0) >= 2;
 
+    const nextStats: PlayerStats = {
+      ...stats,
+      dimaAffection: stats.dimaAffection + (choice.dimaDelta || 0),
+      artemAffection: stats.artemAffection + (choice.artemDelta || 0),
+      romaAffection: stats.romaAffection + (choice.romaDelta || 0),
+      squadAffection: stats.squadAffection + (choice.squadDelta || 0),
+      swimmingSkill: stats.swimmingSkill + (choice.staminaDelta || 0),
+      deepTalksCount: (stats.deepTalksCount || 0) + (isDeep ? 1 : 0),
+    };
+
+    checkMilestones(nextStats);
     handleAdvanceNode(choice.nextNodeId);
   };
 
@@ -185,14 +245,19 @@ export default function App() {
     timeSeconds: number;
     wonVsDima: boolean;
     score: number;
+    perfectStrokes?: number;
   }) => {
-    setStats((prev) => ({
-      ...prev,
-      bestLapTime: Math.min(prev.bestLapTime, results.timeSeconds),
-      dimaAffection: prev.dimaAffection + (results.wonVsDima ? 2 : 1),
-      swimmingSkill: prev.swimmingSkill + 5,
-      championshipWon: activeMinigameDifficulty === 'championship' ? results.wonVsDima : prev.championshipWon,
-    }));
+    const nextStats: PlayerStats = {
+      ...stats,
+      bestLapTime: Math.min(stats.bestLapTime, results.timeSeconds),
+      dimaAffection: stats.dimaAffection + (results.wonVsDima ? 2 : 1),
+      swimmingSkill: stats.swimmingSkill + 5,
+      championshipWon:
+        activeMinigameDifficulty === 'championship' ? results.wonVsDima : stats.championshipWon,
+      perfectStrokesCount: (stats.perfectStrokesCount || 0) + (results.perfectStrokes || 0),
+    };
+
+    checkMilestones(nextStats, true);
 
     if (minigameNextNode) {
       setCurrentNodeId(minigameNextNode);
@@ -209,12 +274,15 @@ export default function App() {
     replyText: string,
     deltas: { dima?: number; artem?: number; roma?: number }
   ) => {
-    setStats((prev) => ({
-      ...prev,
-      dimaAffection: prev.dimaAffection + (deltas.dima || 0),
-      artemAffection: prev.artemAffection + (deltas.artem || 0),
-      romaAffection: prev.romaAffection + (deltas.roma || 0),
-    }));
+    const nextStats: PlayerStats = {
+      ...stats,
+      dimaAffection: stats.dimaAffection + (deltas.dima || 0),
+      artemAffection: stats.artemAffection + (deltas.artem || 0),
+      romaAffection: stats.romaAffection + (deltas.roma || 0),
+      deepTalksCount: (stats.deepTalksCount || 0) + 1,
+    };
+
+    checkMilestones(nextStats);
 
     setChatThreads((prev) =>
       prev.map((t) => {
@@ -247,8 +315,15 @@ export default function App() {
   const currentNode = STORY_NODES[currentNodeId] || STORY_NODES['mon_1'];
 
   return (
-    <main className="w-screen h-screen overflow-hidden bg-slate-950 text-slate-100 flex flex-col relative font-sans">
-      {/* Toast Notification */}
+    <main className="w-screen h-[100dvh] min-h-[100dvh] max-h-[100dvh] overflow-hidden bg-slate-950 text-slate-100 flex flex-col relative font-sans touch-manipulation">
+      {/* Milestone Achievement Notification Banner */}
+      <AchievementToast
+        achievement={activeAchievementToast}
+        language={language}
+        onDismiss={() => setActiveAchievementToast(null)}
+      />
+
+      {/* Save Notification */}
       {saveToast && (
         <div className="fixed top-4 left-1/2 -translate-x-1/2 z-50 px-4 py-2 bg-sky-600 text-white text-xs font-semibold rounded-2xl shadow-xl animate-in fade-in duration-200">
           {saveToast}

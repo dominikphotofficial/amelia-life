@@ -2,11 +2,13 @@ import { CharacterId, CharacterProfile } from '../types';
 
 export const CHARACTER_IMAGES = {
   ameliaHero: '/src/assets/images/amelia_swimming_hero_1793217518881.jpg',
-  ameliaPortrait: '/src/assets/images/amelia_true_portrait_1793218433569.jpg',
-  dima: '/src/assets/images/dima_swimmer_portrait_1793217521512.jpg',
-  artem: '/src/assets/images/artem_school_portrait_1793217520552.jpg',
-  roma: '/src/assets/images/roma_night_portrait_1793217521729.jpg',
-  schoolFriends: '/src/assets/images/kaunas_school_friends_1793217521777.jpg',
+  ameliaPortrait: '/src/assets/images/amelia_euro_portrait_1793219204554.jpg',
+  dima: '/src/assets/images/dima_euro_portrait_1793219205478.jpg',
+  artem: '/src/assets/images/artem_euro_portrait_1793219207930.jpg',
+  roma: '/src/assets/images/roma_euro_portrait_1793219208572.jpg',
+  yeva: '/src/assets/images/yeva_euro_portrait_1793220777061.jpg',
+  sofija: '/src/assets/images/sofija_euro_portrait_1793220777826.jpg',
+  schoolFriends: '/src/assets/images/friends_euro_scene_1793219209251.jpg',
 };
 
 export const CHARACTERS: Record<CharacterId, CharacterProfile> = {
@@ -100,8 +102,8 @@ export const CHARACTERS: Record<CharacterId, CharacterProfile> = {
     role: 'Study Buddy & Sarcastic Genius',
     roleLt: 'Mokslų partnerė · Šmaikšti protinguolė',
     bio: 'Gymnasium valedictorian candidate. Helps Amelia keep her chemistry and calculus grades spotless despite 20 hours of pool training a week.',
-    bioLt: 'Būsima gimnazijos šimtukininkė. Padeda Amelijai išlaikyti aukščiausius chemijos ir matematikos pažymius, nepaisant 20 valandų baseine.',
-    avatar: 'https://api.dicebear.com/7.x/adventurer/svg?seed=YevaKaunas',
+    bioLt: 'Būsima gimnazijos šimtukininkė. Švelniai pailgo veido, išraiškingų akių mergina, padedanti Amelijai išlaikyti aukščiausius pažymius.',
+    avatar: CHARACTER_IMAGES.yeva,
     themeColor: 'from-blue-600 to-indigo-700',
     status: 'Online · "Chemistry notes are uploaded. Now go swim."',
     statusLt: 'Prisijungusi · „Chemijos konspektai jau įkelti. Dabar eik plaukti.“',
@@ -112,8 +114,8 @@ export const CHARACTERS: Record<CharacterId, CharacterProfile> = {
     role: 'Dramatic Romantic',
     roleLt: 'Dramatiška romantikė',
     bio: 'Loves drama and romance tropes. Drew a literal love triangle flowchart on a cafeteria napkin trying to solve Amelia’s love life.',
-    bioLt: 'Tikra romantinių dramų aistruolė. Gimnazijos kavinėje ant servetėlės nubraižė Amelijos vaikinų schemą ir seka kiekvieną žvilgsnį.',
-    avatar: 'https://api.dicebear.com/7.x/adventurer/svg?seed=SofijaPKaunas',
+    bioLt: 'Švelnaus apvaloko veido, natūraliai rausvų skruostų romantikė. Gimnazijos kavinėje seka Amelijos meilės istoriją.',
+    avatar: CHARACTER_IMAGES.sofija,
     themeColor: 'from-violet-500 to-purple-600',
     status: 'Online · "My ship radar is malfunctioning from pure excitement!"',
     statusLt: 'Prisijungusi · „Mano romantinis radaras tuoj sprogs iš susijaudinimo!“',

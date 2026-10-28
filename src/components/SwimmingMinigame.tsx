@@ -6,7 +6,7 @@ import { Language } from '../types';
 interface SwimmingMinigameProps {
   language: Language;
   difficulty: 'practice' | 'time_trial' | 'championship';
-  onComplete: (stats: { timeSeconds: number; wonVsDima: boolean; score: number }) => void;
+  onComplete: (stats: { timeSeconds: number; wonVsDima: boolean; score: number; perfectStrokes?: number }) => void;
   onExit: () => void;
 }
 
@@ -29,7 +29,6 @@ export const SwimmingMinigame: React.FC<SwimmingMinigameProps> = ({
 
   const isLt = language === 'lt';
 
-  // Simulation physics state
   const sim = useRef({
     targetDistance: difficulty === 'championship' ? 100 : 50,
     playerDistance: 0,
@@ -70,13 +69,13 @@ export const SwimmingMinigame: React.FC<SwimmingMinigameProps> = ({
     let boost = 1.0;
 
     if (isAlternating) {
-      if (breathDelta <= 12) {
+      if (breathDelta <= 14) {
         boost = 1.6;
         s.perfectStrokes++;
         s.stamina = Math.min(100, s.stamina + 4);
         triggerFeedback(isLt ? 'TOBULAS GRYBŠNIS! +GREITIS' : 'PERFECT STROKE! +SPEED', 'text-cyan-300');
         sound.playSfx('splash');
-      } else if (breathDelta <= 25) {
+      } else if (breathDelta <= 28) {
         boost = 1.25;
         triggerFeedback(isLt ? 'PUIKUS RITMAS' : 'GREAT RHYTHM', 'text-emerald-300');
         sound.playSfx('splash');
@@ -96,7 +95,7 @@ export const SwimmingMinigame: React.FC<SwimmingMinigameProps> = ({
     const speedImpulse = 2.4 * boost * staminaFactor;
     s.playerSpeed = Math.min(18.0, s.playerSpeed + speedImpulse);
 
-    for (let i = 0; i < 8; i++) {
+    for (let i = 0; i < 6; i++) {
       s.particles.push({
         x: side === 'left' ? 240 : 280,
         y: 200,
@@ -113,7 +112,7 @@ export const SwimmingMinigame: React.FC<SwimmingMinigameProps> = ({
     if (raceFinished || isPaused) return;
     const s = sim.current;
     const breathDelta = Math.abs(s.breathValue - 50);
-    if (breathDelta <= 15) {
+    if (breathDelta <= 16) {
       s.stamina = Math.min(100, s.stamina + 16);
       s.playerSpeed += 1.2;
       triggerFeedback(isLt ? 'DEGUONIES GŪSIS! 💨' : 'OXYGEN SURGE! 💨', 'text-sky-300');
@@ -143,7 +142,6 @@ export const SwimmingMinigame: React.FC<SwimmingMinigameProps> = ({
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [raceFinished, isPaused, language]);
 
-  // Main 60fps simulation loop
   useEffect(() => {
     let animId: number;
     let lastTime = performance.now();
@@ -210,7 +208,6 @@ export const SwimmingMinigame: React.FC<SwimmingMinigameProps> = ({
         }
       }
 
-      // Update particles
       for (let i = s.particles.length - 1; i >= 0; i--) {
         const p = s.particles[i];
         p.x += p.vx * dt;
@@ -221,7 +218,6 @@ export const SwimmingMinigame: React.FC<SwimmingMinigameProps> = ({
         }
       }
 
-      // Render
       const w = canvas.width;
       const h = canvas.height;
 
@@ -232,7 +228,6 @@ export const SwimmingMinigame: React.FC<SwimmingMinigameProps> = ({
       ctx.fillStyle = grad;
       ctx.fillRect(0, 0, w, h);
 
-      // Water Ripples
       ctx.strokeStyle = 'rgba(255, 255, 255, 0.12)';
       ctx.lineWidth = 1.5;
       for (let i = 0; i < 7; i++) {
@@ -273,7 +268,6 @@ export const SwimmingMinigame: React.FC<SwimmingMinigameProps> = ({
       const lane4X = laneWidth * 0.5;
       const lane5X = laneWidth * 1.5;
 
-      // Finish line wall
       const distRemaining = s.targetDistance - s.playerDistance;
       if (distRemaining < 15) {
         const wallY = h - distRemaining * (h / 15);
@@ -281,66 +275,65 @@ export const SwimmingMinigame: React.FC<SwimmingMinigameProps> = ({
         ctx.fillRect(0, wallY - 8, w, 16);
         ctx.fillStyle = '#0f172a';
         ctx.font = 'bold 14px "Plus Jakarta Sans"';
-        ctx.fillText(isLt ? 'FINIŠO SIENELĖ · 100M' : 'FINISH TOUCHPAD · 100M', w / 2 - 80, wallY + 4);
+        ctx.fillText(isLt ? 'FINIŠAS · 100M' : 'FINISH · 100M', w / 2 - 60, wallY + 4);
       }
 
       // Draw Dima
-      const dimaRelY = 220 + (s.playerDistance - s.dimaDistance) * 12;
+      const dimaRelY = 200 + (s.playerDistance - s.dimaDistance) * 12;
       ctx.save();
-      ctx.translate(lane5X, Math.max(80, Math.min(h - 80, dimaRelY)));
+      ctx.translate(lane5X, Math.max(70, Math.min(h - 70, dimaRelY)));
 
       ctx.fillStyle = 'rgba(255, 255, 255, 0.35)';
       ctx.beginPath();
-      ctx.ellipse(0, 35, 24, 45, 0, 0, Math.PI * 2);
+      ctx.ellipse(0, 30, 20, 38, 0, 0, Math.PI * 2);
       ctx.fill();
 
       ctx.fillStyle = '#38bdf8';
       ctx.beginPath();
-      ctx.ellipse(0, 0, 16, 32, 0, 0, Math.PI * 2);
+      ctx.ellipse(0, 0, 14, 28, 0, 0, Math.PI * 2);
       ctx.fill();
 
       ctx.fillStyle = '#0f172a';
       ctx.beginPath();
-      ctx.arc(0, -18, 11, 0, Math.PI * 2);
+      ctx.arc(0, -16, 10, 0, Math.PI * 2);
       ctx.fill();
 
       ctx.fillStyle = '#ffffff';
       ctx.font = 'bold 11px "Plus Jakarta Sans"';
       ctx.textAlign = 'center';
-      ctx.fillText(isLt ? 'DIMA (5 TAKELIS)' : 'DIMA (LANE 5)', 0, -32);
+      ctx.fillText('DIMA (5)', 0, -28);
       ctx.restore();
 
       // Draw Amelia
-      const ameliaY = 220;
+      const ameliaY = 200;
       ctx.save();
       ctx.translate(lane4X, ameliaY);
 
       ctx.fillStyle = 'rgba(255, 255, 255, 0.45)';
       ctx.beginPath();
-      ctx.ellipse(0, 38, 26, 48, 0, 0, Math.PI * 2);
+      ctx.ellipse(0, 32, 22, 40, 0, 0, Math.PI * 2);
       ctx.fill();
 
       ctx.fillStyle = '#1e3a8a';
       ctx.beginPath();
-      ctx.ellipse(0, 0, 15, 30, 0, 0, Math.PI * 2);
+      ctx.ellipse(0, 0, 13, 26, 0, 0, Math.PI * 2);
       ctx.fill();
 
       ctx.fillStyle = '#f59e0b';
-      ctx.fillRect(-12, -8, 3, 24);
-      ctx.fillRect(9, -8, 3, 24);
+      ctx.fillRect(-10, -7, 2.5, 20);
+      ctx.fillRect(7.5, -7, 2.5, 20);
 
       ctx.fillStyle = '#0369a1';
       ctx.beginPath();
-      ctx.arc(0, -17, 10, 0, Math.PI * 2);
+      ctx.arc(0, -15, 9, 0, Math.PI * 2);
       ctx.fill();
 
       ctx.fillStyle = '#38bdf8';
-      ctx.font = 'bold 12px "Outfit"';
+      ctx.font = 'bold 11px "Outfit"';
       ctx.textAlign = 'center';
-      ctx.fillText(isLt ? 'AMELIJA (TU)' : 'AMELIA (YOU)', 0, -32);
+      ctx.fillText(isLt ? 'AMELIJA (4)' : 'AMELIA (4)', 0, -28);
       ctx.restore();
 
-      // Render Particles
       for (const p of s.particles) {
         ctx.save();
         ctx.globalAlpha = Math.max(0, p.alpha);
@@ -359,152 +352,141 @@ export const SwimmingMinigame: React.FC<SwimmingMinigameProps> = ({
   }, [isPaused, raceFinished, difficulty, isLt]);
 
   return (
-    <div className="relative w-full h-full flex flex-col items-center justify-center bg-slate-950 overflow-hidden font-sans select-none">
-      <canvas
-        ref={canvasRef}
-        width={720}
-        height={600}
-        className="w-full max-w-3xl h-[600px] rounded-2xl shadow-2xl border border-sky-900/40 bg-sky-950 cursor-pointer"
-        onClick={() => handleStroke(Math.random() > 0.5 ? 'left' : 'right')}
-      />
-
-      {/* Low-Occlusion HUD Overlay */}
-      <div className="absolute inset-0 pointer-events-none flex flex-col justify-between p-4 sm:p-6 max-w-3xl mx-auto">
-        <div className="flex items-center justify-between gap-4">
-          <div className="flex items-center gap-3">
-            <div className="flex flex-col bg-slate-900/80 backdrop-blur-md px-3.5 py-1.5 rounded-xl border border-sky-500/20 shadow-md">
-              <span className="text-[10px] text-sky-400 font-semibold tracking-wider uppercase">
-                {isLt ? 'Distancija' : 'Distance'}
-              </span>
-              <span className="text-xl font-bold font-mono tabular-nums text-white">
-                {distanceDisplay} / {sim.current.targetDistance}m
-              </span>
-            </div>
-            <div className="flex flex-col bg-slate-900/80 backdrop-blur-md px-3.5 py-1.5 rounded-xl border border-sky-500/20 shadow-md">
-              <span className="text-[10px] text-sky-400 font-semibold tracking-wider uppercase">
-                {isLt ? 'Laikas' : 'Lap Timer'}
-              </span>
-              <span className="text-xl font-bold font-mono tabular-nums text-sky-200">
-                {elapsedDisplay}
-              </span>
-            </div>
+    <div className="relative w-full h-[100dvh] min-h-[100dvh] flex flex-col items-center justify-between bg-slate-950 overflow-hidden font-sans select-none p-2 sm:p-4 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
+      {/* Top Status Bar */}
+      <div className="w-full max-w-2xl flex items-center justify-between gap-2 z-20 shrink-0">
+        <div className="flex items-center gap-2">
+          <div className="flex flex-col bg-slate-900/90 backdrop-blur-md px-2.5 py-1 rounded-xl border border-sky-500/20 shadow-md">
+            <span className="text-[9px] text-sky-400 font-semibold uppercase">{isLt ? 'Distancija' : 'Distance'}</span>
+            <span className="text-base sm:text-lg font-bold font-mono tabular-nums text-white">
+              {distanceDisplay}/{sim.current.targetDistance}m
+            </span>
           </div>
-
-          <div className="pointer-events-auto flex items-center gap-2">
-            <button
-              onClick={() => {
-                const isNowMuted = sound.toggleMute();
-                setMuted(isNowMuted);
-              }}
-              className="p-2.5 rounded-xl bg-slate-900/80 hover:bg-slate-800 text-sky-300 border border-sky-500/20 transition-colors"
-              title="Garsas / Sound"
-            >
-              {muted ? <VolumeX className="w-4 h-4" /> : <Volume2 className="w-4 h-4" />}
-            </button>
-            <button
-              onClick={onExit}
-              className="px-3.5 py-2 rounded-xl bg-slate-900/80 hover:bg-slate-800 text-slate-300 border border-slate-700 text-xs font-medium transition-colors"
-            >
-              {isLt ? 'Išlipti iš baseino' : 'Exit Pool'}
-            </button>
+          <div className="flex flex-col bg-slate-900/90 backdrop-blur-md px-2.5 py-1 rounded-xl border border-sky-500/20 shadow-md">
+            <span className="text-[9px] text-sky-400 font-semibold uppercase">{isLt ? 'Laikas' : 'Timer'}</span>
+            <span className="text-base sm:text-lg font-bold font-mono tabular-nums text-sky-200">
+              {elapsedDisplay}
+            </span>
           </div>
         </div>
 
-        {ratingFeedback && (
-          <div
-            key={ratingFeedback.key}
-            className={`self-center transition-all animate-bounce font-display font-extrabold text-lg sm:text-2xl drop-shadow-md tracking-wide ${ratingFeedback.color}`}
+        <div className="flex items-center gap-1.5">
+          <button
+            onClick={() => {
+              const isNowMuted = sound.toggleMute();
+              setMuted(isNowMuted);
+            }}
+            className="p-2 rounded-xl bg-slate-900/80 text-sky-300 border border-sky-500/20"
+            title="Garsas"
           >
-            {ratingFeedback.text}
-          </div>
-        )}
+            {muted ? <VolumeX className="w-4 h-4" /> : <Volume2 className="w-4 h-4" />}
+          </button>
+          <button
+            onClick={onExit}
+            className="px-2.5 py-1.5 rounded-xl bg-slate-900/80 text-slate-300 border border-slate-700 text-xs font-semibold"
+          >
+            {isLt ? 'Išlipti' : 'Exit'}
+          </button>
+        </div>
+      </div>
 
-        {/* Breath Oscillator & Controls */}
-        <div className="flex flex-col gap-3">
-          <div className="bg-slate-900/90 backdrop-blur-md rounded-2xl p-4 border border-sky-500/20 shadow-xl flex flex-col gap-2.5">
-            <div className="flex items-center justify-between text-xs text-sky-200 font-medium">
-              <span className="flex items-center gap-1.5">
-                <span className="w-2 h-2 rounded-full bg-cyan-400" />
-                {isLt ? 'Kvėpavimo ritmas (Spauskite SPACE žalioje zonoje)' : 'Oxygen Rhythm (Press SPACE inside Green Zone)'}
-              </span>
-              <span className="font-mono tabular-nums text-slate-400">
-                {isLt ? 'Ištvermė' : 'Stamina'}: {stamina}%
-              </span>
-            </div>
+      {/* Dynamic Feedback */}
+      {ratingFeedback && (
+        <div
+          key={ratingFeedback.key}
+          className={`z-20 font-display font-extrabold text-sm sm:text-xl drop-shadow tracking-wide ${ratingFeedback.color} -my-1`}
+        >
+          {ratingFeedback.text}
+        </div>
+      )}
 
-            <div className="relative w-full h-4 bg-slate-800 rounded-full overflow-hidden border border-slate-700">
-              <div className="absolute left-[38%] right-[38%] top-0 bottom-0 bg-emerald-500/40 border-x border-emerald-400" />
-              <div
-                className="absolute top-0 bottom-0 w-3 -ml-1.5 bg-cyan-300 rounded-full shadow-[0_0_8px_#38bdf8] transition-all duration-75"
-                style={{ left: `${breathMeter}%` }}
-              />
-            </div>
+      {/* Responsive Canvas Container */}
+      <div className="relative w-full max-w-2xl flex-1 flex items-center justify-center min-h-0 my-1">
+        <canvas
+          ref={canvasRef}
+          width={640}
+          height={480}
+          className="w-full h-full max-h-[46vh] sm:max-h-[500px] rounded-2xl shadow-xl border border-sky-900/40 bg-sky-950 cursor-pointer object-contain"
+          onClick={() => handleStroke(Math.random() > 0.5 ? 'left' : 'right')}
+        />
+      </div>
 
-            <div className="pointer-events-auto flex items-center justify-between gap-3 pt-1">
-              <button
-                onClick={() => handleStroke('left')}
-                className="flex-1 py-3 px-4 rounded-xl bg-sky-700 hover:bg-sky-600 active:scale-95 text-white font-bold text-xs sm:text-sm tracking-wide transition-all shadow-md"
-              >
-                {isLt ? 'KAIRĖ (A / ◀)' : 'LEFT STROKE (A / ◀)'}
-              </button>
-              <button
-                onClick={handleBreathSync}
-                className="px-5 py-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 active:scale-95 text-white font-bold text-xs sm:text-sm tracking-wide transition-all shadow-md"
-              >
-                {isLt ? 'ĮKVĖPIMAS (SPACE)' : 'BREATHE (SPACE)'}
-              </button>
-              <button
-                onClick={() => handleStroke('right')}
-                className="flex-1 py-3 px-4 rounded-xl bg-sky-700 hover:bg-sky-600 active:scale-95 text-white font-bold text-xs sm:text-sm tracking-wide transition-all shadow-md"
-              >
-                {isLt ? 'DEŠINĖ (D / ▶)' : 'RIGHT STROKE (D / ▶)'}
-              </button>
-            </div>
-          </div>
+      {/* Bottom Controls Cockpit: Phone Thumb-Friendly */}
+      <div className="w-full max-w-2xl bg-slate-900/95 backdrop-blur-md rounded-2xl p-2.5 sm:p-4 border border-sky-500/20 shadow-xl flex flex-col gap-2 shrink-0">
+        <div className="flex items-center justify-between text-[11px] sm:text-xs text-sky-200 font-medium">
+          <span className="flex items-center gap-1">
+            <span className="w-2 h-2 rounded-full bg-cyan-400" />
+            {isLt ? 'Kvėpavimas (SPACE žalioje zonoje)' : 'Breath (SPACE in Green Zone)'}
+          </span>
+          <span className="font-mono tabular-nums text-slate-400">
+            {isLt ? 'Ištvermė' : 'Stamina'}: {stamina}%
+          </span>
+        </div>
+
+        {/* Breath Oscillator Slider Track */}
+        <div className="relative w-full h-3 sm:h-3.5 bg-slate-800 rounded-full overflow-hidden border border-slate-700">
+          <div className="absolute left-[36%] right-[36%] top-0 bottom-0 bg-emerald-500/45 border-x border-emerald-400" />
+          <div
+            className="absolute top-0 bottom-0 w-3 -ml-1.5 bg-cyan-300 rounded-full shadow-[0_0_8px_#38bdf8] transition-all duration-75"
+            style={{ left: `${breathMeter}%` }}
+          />
+        </div>
+
+        {/* Touch Buttons */}
+        <div className="grid grid-cols-3 gap-1.5 sm:gap-2.5 pt-0.5">
+          <button
+            onClick={() => handleStroke('left')}
+            className="py-3 px-2 rounded-xl bg-sky-700 hover:bg-sky-600 active:scale-95 active:bg-sky-500 text-white font-bold text-xs sm:text-sm tracking-wide shadow-md flex flex-col items-center justify-center min-h-[48px]"
+          >
+            <span>{isLt ? 'KAIRĖ' : 'LEFT'}</span>
+            <span className="text-[9px] text-sky-200 font-mono hidden sm:inline">(A / ◀)</span>
+          </button>
+          <button
+            onClick={handleBreathSync}
+            className="py-3 px-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 active:scale-95 active:bg-emerald-400 text-white font-bold text-xs sm:text-sm tracking-wide shadow-md flex flex-col items-center justify-center min-h-[48px]"
+          >
+            <span>{isLt ? 'ĮKVĖPIMAS' : 'BREATHE'}</span>
+            <span className="text-[9px] text-emerald-200 font-mono hidden sm:inline">(SPACE)</span>
+          </button>
+          <button
+            onClick={() => handleStroke('right')}
+            className="py-3 px-2 rounded-xl bg-sky-700 hover:bg-sky-600 active:scale-95 active:bg-sky-500 text-white font-bold text-xs sm:text-sm tracking-wide shadow-md flex flex-col items-center justify-center min-h-[48px]"
+          >
+            <span>{isLt ? 'DEŠINĖ' : 'RIGHT'}</span>
+            <span className="text-[9px] text-sky-200 font-mono hidden sm:inline">(D / ▶)</span>
+          </button>
         </div>
       </div>
 
       {/* Result Modal */}
       {raceFinished && finalResult && (
-        <div className="absolute inset-0 bg-slate-950/85 backdrop-blur-md flex items-center justify-center p-4 z-50 animate-in fade-in zoom-in-95 duration-200">
-          <div className="max-w-md w-full bg-slate-900 border border-sky-500/30 rounded-3xl p-6 sm:p-8 shadow-2xl flex flex-col items-center text-center">
-            <div className="w-16 h-16 rounded-2xl bg-sky-500/20 border border-sky-400/40 flex items-center justify-center text-amber-300 mb-4 shadow-lg">
-              <Trophy className="w-8 h-8" />
+        <div className="fixed inset-0 bg-slate-950/90 backdrop-blur-md flex items-center justify-center p-4 z-50 animate-in fade-in zoom-in-95 duration-200">
+          <div className="max-w-sm w-full bg-slate-900 border border-sky-500/30 rounded-3xl p-5 sm:p-7 shadow-2xl flex flex-col items-center text-center">
+            <div className="w-14 h-14 rounded-2xl bg-sky-500/20 border border-sky-400/40 flex items-center justify-center text-amber-300 mb-3 shadow-lg">
+              <Trophy className="w-7 h-7" />
             </div>
 
-            <h2 className="text-2xl sm:text-3xl font-display font-extrabold text-white mb-1">
+            <h2 className="text-xl sm:text-2xl font-display font-extrabold text-white mb-1">
               {finalResult.won
-                ? isLt
-                  ? 'Finišas: 1 Vieta!'
-                  : 'Touchpad Finish: 1st Place!'
-                : isLt
-                ? 'Plaukimas baigtas!'
-                : 'Race Completed!'}
+                ? isLt ? 'Finišas: 1 Vieta!' : '1st Place Finish!'
+                : isLt ? 'Plaukimas baigtas!' : 'Race Finished!'}
             </h2>
-            <p className="text-sm text-sky-300 mb-6">
+            <p className="text-xs text-sky-300 mb-4 leading-relaxed">
               {finalResult.won
-                ? isLt
-                  ? 'Palietei sienelę greičiau už Dimą! Kauno žiūrovai ploja atsistoję!'
-                  : 'You touched the wall ahead of Dima! Kaunas crowd is roaring!'
-                : isLt
-                ? 'Puikus sprintas prieš Dimą! Dima sveikina tave vandens purslais!'
-                : 'Incredible sprint against Dima! Dima congratulates you with a splash!'}
+                ? isLt ? 'Palietei sienelę pirma! Kauno tribūnos ploja atsistojusios!' : 'You touched first ahead of Dima!'
+                : isLt ? 'Puikus sprintas baseine su Dima!' : 'Great lap sprint with Dima!'}
             </p>
 
-            <div className="w-full grid grid-cols-2 gap-3 mb-6">
-              <div className="bg-slate-800/80 p-3.5 rounded-2xl border border-slate-700 flex flex-col items-center">
-                <span className="text-xs text-slate-400 uppercase font-semibold">
-                  {isLt ? 'Finišo laikas' : 'Final Time'}
-                </span>
-                <span className="text-2xl font-mono font-bold text-sky-200 tabular-nums">
+            <div className="w-full grid grid-cols-2 gap-2 mb-4">
+              <div className="bg-slate-800/80 p-2.5 rounded-xl border border-slate-700">
+                <span className="text-[10px] text-slate-400 uppercase font-semibold block">{isLt ? 'Laikas' : 'Time'}</span>
+                <span className="text-xl font-mono font-bold text-sky-200 tabular-nums">
                   {finalResult.time}s
                 </span>
               </div>
-              <div className="bg-slate-800/80 p-3.5 rounded-2xl border border-slate-700 flex flex-col items-center">
-                <span className="text-xs text-slate-400 uppercase font-semibold">
-                  {isLt ? 'Įvertinimas' : 'Performance'}
-                </span>
-                <span className="text-2xl font-display font-bold text-amber-300">
+              <div className="bg-slate-800/80 p-2.5 rounded-xl border border-slate-700">
+                <span className="text-[10px] text-slate-400 uppercase font-semibold block">{isLt ? 'Medalis' : 'Rating'}</span>
+                <span className="text-lg font-display font-bold text-amber-300">
                   {finalResult.rating}
                 </span>
               </div>
@@ -516,11 +498,12 @@ export const SwimmingMinigame: React.FC<SwimmingMinigameProps> = ({
                   timeSeconds: finalResult.time,
                   wonVsDima: finalResult.won,
                   score: finalResult.won ? 100 : 75,
+                  perfectStrokes: sim.current.perfectStrokes,
                 });
               }}
-              className="w-full py-3.5 px-6 rounded-2xl bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-400 hover:to-blue-500 text-white font-bold text-base shadow-lg hover:shadow-sky-500/25 transition-all flex items-center justify-center gap-2"
+              className="w-full py-3.5 px-5 rounded-2xl bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-400 hover:to-blue-500 active:scale-95 text-white font-bold text-sm shadow-lg transition-all flex items-center justify-center gap-2 min-h-[46px]"
             >
-              {isLt ? 'Tęsti istoriją' : 'Continue Story'} <ArrowRight className="w-5 h-5" />
+              {isLt ? 'Tęsti istoriją' : 'Continue Story'} <ArrowRight className="w-4 h-4" />
             </button>
           </div>
         </div>

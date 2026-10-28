@@ -115,8 +115,9 @@ export const STORY_NODES: Record<string, StoryNode> = {
     locationNameLt: 'Kauno tarptautinė gimnazija · Vidinis kiemas',
     speakerId: 'sofija_p',
     text: 'OH. MY. GOD. Did you see the way Artem looked at her?! That was straight out of an anime romance! I’m updating the ship chart right now on my notebook!',
-    textLt: 'O. MANO. DIEVE. Ar matėt, kaip Artiomas į ją pažiūrėjo?! Čia grynai kaip iš romantinio anime! Jau braižau naują porų schemą sąsiuvinyje!',
+    textLt: 'O. MANO. DIEVE. Ar matėt, kaip Artiomas į ją pažiūrėjo?! Jau braižau naują porų schemą sąsiuvinyje!',
     bgImage: CHARACTER_IMAGES.schoolFriends,
+    activeCharacterImage: CHARACTER_IMAGES.sofija,
     nextNodeId: 'mon_squad_yeva',
   },
   'mon_squad_yeva': {
@@ -131,6 +132,7 @@ export const STORY_NODES: Record<string, StoryNode> = {
     text: 'Calm down, Sofija. First Amelia has to pass 4th period AP Biology and swim 100 meters under 56 seconds. Here are the lecture summary sheets, Amelia. Don’t lose them.',
     textLt: 'Nusiramink, Sofija. Pirmiausia Amelijai reikia parašyti biologijos kontrolinį ir nuplaukti 100 metrų greičiau nei per 56 sekundes. Štai konspektai, Amelija. Nepamesk.',
     bgImage: CHARACTER_IMAGES.schoolFriends,
+    activeCharacterImage: CHARACTER_IMAGES.yeva,
     nextNodeId: 'mon_squad_other',
   },
   'mon_squad_other': {
