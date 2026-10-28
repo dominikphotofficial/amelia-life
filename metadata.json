@@ -1,0 +1,6 @@
+{
+  "name": "Amelia: Heart in the Deep End",
+  "description": "An interactive romance visual novel & swimming sports game featuring Amelia, her boyfriends Dima, Artem, and Roma, and her friend squad at Kaunas International Gymnasium.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
